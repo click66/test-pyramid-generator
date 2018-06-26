@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="canvas" width="800" height="800" style="border:1px solid #d3d3d3;">
+    Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script type="text/javascript" src="cloudgen-min.js"></script>
+<script>
+    function drawTrapezium(canvas, bottom, height, bottomLength, topLength, color = '#ffffff') {
+        const centerX = canvas.width / 2;
+        const context = canvas.getContext('2d');
+
+        const start = centerX - (bottomLength / 2);
+        const end = centerX - (topLength / 2);
+
+        context.beginPath();
+        context.moveTo(start, bottom);
+
+        context.lineTo(start + bottomLength, bottom);
+        context.lineTo(end + topLength, bottom - height);
+        context.lineTo(end, bottom - height);
+
+        context.closePath();
+
+        context.fillStyle = color;
+        context.fill();
+
+        context.stroke();
+    }
+
+    function drawCloud(canvas, size) {
+        const centerX = canvas.width / 2;
+
+        $cloudgen.drawCloud(canvas.getContext('2d'), centerX, 50, size * 10, {
+            r: 70,
+            g: 70,
+            b: 70
+        }, 0.8);
+    }
+
+    function TestPyramid(
+        unitTests,
+        integrationTests,
+        e2eTests,
+        manualTests
+    ) {
+        this.unitTests = unitTests;
+        this.integrationTests = integrationTests;
+        this.e2eTests = e2eTests;
+        this.manualTests = manualTests;
+    };
+
+    TestPyramid.prototype = {
+        /** @var {Number} */
+        baseLine: 750,
+
+        /** @var {Number} */
+        segmentHeight: 200,
+
+        /**
+         * @param {HTMLCanvasElement} canvas
+         */
+        render: function (canvas) {
+            if (!canvas instanceof HTMLCanvasElement) {
+                throw new TypeError('Argument to render() was not instance of HTMLCanvasElement');
+            }
+
+            let factor = 1;
+            if (this.unitTests > canvas.width) {
+                factor = canvas.width / this.unitTests;
+            }
+
+            const u = this.unitTests * factor;
+            const i = this.integrationTests * factor;
+            const e = this.e2eTests * factor;
+            const m = this.manualTests * factor;
+            const ieLength = e < i ? e : i;
+
+            let startOne = this.baseLine;
+            let startTwo = startOne - this.segmentHeight;
+            let startThree = startTwo - this.segmentHeight;
+
+            // Draw "Unit tests" block
+            drawTrapezium(
+                canvas,
+                startOne,
+                this.segmentHeight,
+                u,
+                i,
+                '#33cc33'
+            );
+
+            // Draw "Integration tests" block
+            drawTrapezium(
+                canvas,
+                startTwo,
+                this.segmentHeight,
+                i,
+                ieLength,
+                '#3333cc'
+            );
+
+            // Draw "e2e tests block"
+            drawTrapezium(
+                canvas,
+                startThree,
+                this.segmentHeight,
+                ieLength,
+                e < i ? 0 : e,
+                '#cc3333'
+            );
+
+            // Draw "Manual tests" cloud
+            drawCloud(canvas, m);
+        }
+    };
+
+    let pyramid = new TestPyramid(700, 300, 20, 20);
+    pyramid.render(document.getElementById('canvas'));
+</script>
+
+<p><strong>Note:</strong> The canvas tag is not supported in Internet
+    Explorer 8 and earlier versions.</p>
+
+</body>
+</html>
